@@ -7,13 +7,13 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 
-public class HelloApplication extends Application {
+public class ExtractApplication extends Application {
     private static Stage mainStage;
 
     @Override
     public void start(Stage stage) throws IOException {
         mainStage = stage;
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("hello-view.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(ExtractApplication.class.getResource("extract-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load(), 853, 480);
         stage.setTitle("Get Stuff from WebView");
         stage.setScene(scene);

@@ -5,21 +5,25 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
+import netscape.javascript.JSObject;
 import java.net.URL;
 import java.util.ResourceBundle;
 
-public class HelloController implements Initializable {
+public class ExtractController implements Initializable {
     @FXML
     private TextField textFieldUrl;
 
     @FXML
-    private TextField textFieldQuery;
+    private TextArea taQuery;
+
+    @FXML
+    private TextArea taResult;
 
     @FXML
     private WebView webView;
@@ -59,9 +63,30 @@ public class HelloController implements Initializable {
         }
     }
 
-    private static void scriptExecutor(WebEngine webEngine, String script) {
-        String result = (String)webEngine.executeScript(script);
-        System.out.printf("RESULT: %s%n", result);
+    private void scriptExecutor(WebEngine webEngine, String script) {
+        Object result = webEngine.executeScript(script);
+        System.out.println(result.getClass().getTypeName());
+        StringBuilder elementHtml;
+        if (result instanceof JSObject jsObject) {
+            if (jsObject.getMember("length") != null) {
+                // It's a list of elements
+                elementHtml = new StringBuilder();
+                try {
+                    int length = Integer.parseInt(jsObject.getMember("length").toString());
+                    for (int i = 0; i < length; i++) {
+                        JSObject element = (JSObject) jsObject.getSlot(i);
+                        elementHtml.append((String) element.getMember("outerHTML"));
+                    }
+                } catch (NumberFormatException ignoredNfe) {
+                    elementHtml = new StringBuilder((String) jsObject.getMember("outerHTML"));
+                }
+            } else {
+                elementHtml = new StringBuilder((String) jsObject.getMember("outerHTML"));
+            }
+        } else {
+            elementHtml = new StringBuilder(result.toString());
+        }
+        taResult.setText(elementHtml.toString());
     }
 
     @FXML
@@ -72,7 +97,7 @@ public class HelloController implements Initializable {
             webEngine.load(uri);
 
             // Wait for the page to finish loading
-            webEngine.getLoadWorker().stateProperty().addListener((obs, oldState, newState) -> {
+            webEngine.getLoadWorker().stateProperty().addListener((ignoredObs, ignoredOldState, newState) -> {
                 if (newState == Worker.State.SUCCEEDED) {
                     // Execute JavaScript to retrieve element IDs
                     String script = "var ids = [];"
@@ -81,17 +106,17 @@ public class HelloController implements Initializable {
                             + "    ids.push(elements[i].id);"
                             + "}"
                             + "ids.join(';')";
-                    HelloController.scriptExecutor(webEngine, script);
+                    this.scriptExecutor(webEngine, script);
                 }
             });
         } else {
-            HelloController.handleError(HelloApplication.getMainStage());
+            ExtractController.handleError(ExtractApplication.getMainStage());
         }
     }
 
     @FXML
     public void onQueryButtonClick(ActionEvent ignoredEvent) {
         WebEngine webEngine = webView.getEngine();
-        HelloController.scriptExecutor(webEngine, textFieldQuery.getText());
+        this.scriptExecutor(webEngine, taQuery.getText());
     }
 }

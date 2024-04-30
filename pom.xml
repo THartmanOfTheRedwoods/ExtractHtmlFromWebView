@@ -68,7 +68,7 @@
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>
-                                edu.redwoods.cis18.html.extracthtml/edu.redwoods.cis18.html.extracthtml.HelloApplication
+                                edu.redwoods.cis18.html.extracthtml/edu.redwoods.cis18.html.extracthtml.ExtractApplication
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
